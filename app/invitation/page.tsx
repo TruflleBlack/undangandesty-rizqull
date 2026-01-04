@@ -17,11 +17,13 @@ import RSVP from "./sections/RSVP";
 import Thanks from "./sections/Thanks";
 import FloatingMusicButton from "@/components/FloatingMusicButton";
 
+import { Suspense } from "react";
 import FadeInSection from "./components/FadeInSection";
 
 export default function InvitationPage() {
     return (
         <div className="relative h-[100svh] w-full bg-slate-950 overflow-hidden">
+            {/* ... Global Background ... */}
 
             {/* Global Background Image */}
             <div className="absolute inset-0 z-0 h-full w-full">
@@ -68,7 +70,13 @@ export default function InvitationPage() {
                 <div className="min-w-full w-full h-full snap-center shrink-0 overflow-hidden relative"><FadeInSection><Akad /></FadeInSection></div>
                 <div className="min-w-full w-full h-full snap-center shrink-0 overflow-hidden relative"><FadeInSection><Resepsi /></FadeInSection></div>
                 <div className="min-w-full w-full h-full snap-center shrink-0 overflow-hidden relative"><FadeInSection><Gift /></FadeInSection></div>
-                <div className="min-w-full w-full h-full snap-center shrink-0 overflow-hidden relative"><FadeInSection><RSVP /></FadeInSection></div>
+                <div className="min-w-full w-full h-full snap-center shrink-0 overflow-hidden relative">
+                    <FadeInSection>
+                        <Suspense fallback={<div className="w-full h-full flex items-center justify-center text-white/50">Loading RSVP...</div>}>
+                            <RSVP />
+                        </Suspense>
+                    </FadeInSection>
+                </div>
                 <div className="min-w-full w-full h-full snap-center shrink-0 overflow-hidden relative"><FadeInSection><Thanks /></FadeInSection></div>
             </div>
 
