@@ -1,0 +1,18 @@
+[
+  {
+    "id": "dd799d64-0d80-4f03-b32d-a1185b2e357d",
+    "name": "Rizqull",
+    "attendance": "hadir",
+    "message": "Selamat",
+    "createdAt": "2025-12-28T23:19:33.617Z",
+    "isTest": false
+  },
+  {
+    "id": "fa66bca5-f9a7-4914-98ca-ad0c6f75b321",
+    "name": "rizqull",
+    "attendance": "tidak_hadir",
+    "message": "maaf",
+    "createdAt": "2025-12-28T23:44:56.719Z",
+    "isTest": false
+  }
+]
