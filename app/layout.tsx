@@ -35,6 +35,10 @@ export const metadata: Metadata = {
   description: "Official Digital Invitation",
 };
 
+import { Suspense } from "react";
+
+// ... existing imports
+
 export default function RootLayout({
   children,
 }: Readonly<{
@@ -47,7 +51,9 @@ export default function RootLayout({
       >
         <MobileFrame>
           <AudioProvider>
-            {children}
+            <Suspense>
+              {children}
+            </Suspense>
           </AudioProvider>
         </MobileFrame>
       </body>
