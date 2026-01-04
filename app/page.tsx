@@ -1,87 +1,177 @@
 "use client";
 
-import Image from "next/image";
+import { useRef, useState, useLayoutEffect } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
+import { useAudio } from "@/components/providers/AudioProvider";
+import gsap from "gsap";
+import { cn } from "@/lib/utils";
 
-// Sections
+export default function OpeningPage() {
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const guestName = searchParams.get("to") || "Tamu Undangan";
+  const { play } = useAudio();
 
-import Home from "./sections/Home";
-import Doa from "./sections/Doa";
-import Salam from "./sections/Salam";
-import Bride from "./sections/Bride";
-import Groom from "./sections/Groom";
-import SaveTheDate from "./sections/SaveTheDate";
-import Gift from "./sections/Gift";
-import Akad from "./sections/Akad";
-import Resepsi from "./sections/Resepsi";
-import RSVP from "./sections/RSVP";
-import Thanks from "./sections/Thanks";
-import FloatingMusicButton from "@/components/FloatingMusicButton";
+  // State
+  const [isTransitioning, setIsTransitioning] = useState(false);
+  const [buttonText, setButtonText] = useState("Buka Undangan");
 
-import { Suspense } from "react";
-import FadeInSection from "./components/FadeInSection";
+  // Refs
+  const containerRef = useRef<HTMLDivElement>(null);
+  const textRef = useRef<HTMLDivElement>(null);
+  const buttonRef = useRef<HTMLButtonElement>(null);
+  const loopVideoRef = useRef<HTMLVideoElement>(null);
+  const transitionVideoRef = useRef<HTMLVideoElement>(null);
 
-export default function InvitationPage() {
-    return (
-        <div className="relative h-[100svh] w-full bg-slate-950 overflow-hidden">
-            {/* ... Global Background ... */}
+  // Initial Animation
+  useLayoutEffect(() => {
+    const ctx = gsap.context(() => {
+      // Fade in text
+      gsap.fromTo(
+        textRef.current,
+        { opacity: 0, y: 20 },
+        { opacity: 1, y: 0, duration: 2, ease: "power2.out", delay: 0.5 }
+      );
 
-            {/* Global Background Image */}
-            <div className="absolute inset-0 z-0 h-full w-full">
-                {/* Mobile Background (Portrait/Small Screens) - background.png */}
-                <div className="relative w-full h-full block md:hidden">
-                    <Image
-                        src="/assets/images/background/background.png"
-                        alt="Background Mobile"
-                        fill
-                        className="object-cover object-bottom"
-                        quality={100}
-                        sizes="100vw"
-                        priority
-                    />
-                </div>
+      // Button idle animation (pulse)
+      gsap.to(buttonRef.current, {
+        scale: 1.06,
+        duration: 1.25,
+        repeat: -1,
+        yoyo: true,
+        ease: "sine.inOut",
+        delay: 2.5 // Start after text appears
+      });
 
-                {/* Desktop/Tablet Background - background4x5.png */}
-                <div className="relative w-full h-full hidden md:block">
-                    <Image
-                        src="/assets/images/background/background4x5.png"
-                        alt="Background Desktop"
-                        fill
-                        className="object-cover opacity-90"
-                        priority
-                    />
-                </div>
+      // Fade in button
+      gsap.fromTo(
+        buttonRef.current,
+        { opacity: 0 },
+        { opacity: 1, duration: 1, delay: 2 }
+      );
+    }, containerRef);
 
-                {/* Optional Overlay for text readability */}
-                <div className="absolute inset-0 bg-white/20 mix-blend-overlay" />
-            </div>
+    return () => ctx.revert();
+  }, []);
 
-            {/* Horizontal Swipe Container */}
-            <div className="relative z-10 w-full h-full flex flex-row overflow-x-scroll overflow-y-hidden snap-x snap-mandatory scroll-smooth no-scrollbar">
+  const handleOpenInvitation = () => {
+    if (isTransitioning) return;
+    setIsTransitioning(true);
+    setButtonText("Membuka...");
 
-                {/* Helper function to standardize slide structure */}
-                {/* Each slide is strictly 100% width and height */}
+    // 1. Play Audio
+    play();
 
-                <div className="min-w-full w-full h-full snap-center shrink-0 overflow-hidden relative"><Home /></div>
-                <div className="min-w-full w-full h-full snap-center shrink-0 overflow-hidden relative"><FadeInSection><Doa /></FadeInSection></div>
-                <div className="min-w-full w-full h-full snap-center shrink-0 overflow-hidden relative"><FadeInSection><Salam /></FadeInSection></div>
-                <div className="min-w-full w-full h-full snap-center shrink-0 overflow-hidden relative"><FadeInSection><Bride /></FadeInSection></div>
-                <div className="min-w-full w-full h-full snap-center shrink-0 overflow-hidden relative"><FadeInSection><Groom /></FadeInSection></div>
-                <div className="min-w-full w-full h-full snap-center shrink-0 overflow-hidden relative"><FadeInSection><SaveTheDate /></FadeInSection></div>
-                <div className="min-w-full w-full h-full snap-center shrink-0 overflow-hidden relative"><FadeInSection><Akad /></FadeInSection></div>
-                <div className="min-w-full w-full h-full snap-center shrink-0 overflow-hidden relative"><FadeInSection><Resepsi /></FadeInSection></div>
-                <div className="min-w-full w-full h-full snap-center shrink-0 overflow-hidden relative"><FadeInSection><Gift /></FadeInSection></div>
-                <div className="min-w-full w-full h-full snap-center shrink-0 overflow-hidden relative">
-                    <FadeInSection>
-                        <Suspense fallback={<div className="w-full h-full flex items-center justify-center text-white/50">Loading RSVP...</div>}>
-                            <RSVP />
-                        </Suspense>
-                    </FadeInSection>
-                </div>
-                <div className="min-w-full w-full h-full snap-center shrink-0 overflow-hidden relative"><FadeInSection><Thanks /></FadeInSection></div>
-            </div>
+    const ctx = gsap.context(() => {
+      const tl = gsap.timeline({
+        onComplete: () => {
+          // Cleanup done in timeline logic or after video
+        }
+      });
 
-            {/* Global Music Control (Persistent across slides) */}
-            <FloatingMusicButton />
+      // 2. Button Ripple & Disable
+      tl.to(buttonRef.current, {
+        scale: 0.95,
+        duration: 0.1,
+        ease: "power1.out"
+      });
+
+      // 3. UI Fade Out 
+      tl.to([textRef.current, buttonRef.current], {
+        opacity: 0,
+        y: -20,
+        duration: 0.8,
+        ease: "power2.in"
+      });
+
+      // 4. Crossfade Videos
+      // We manually start the transition video and fade it in over the loop
+      if (transitionVideoRef.current && loopVideoRef.current) {
+        transitionVideoRef.current.style.display = 'block';
+        transitionVideoRef.current.style.opacity = '0';
+        transitionVideoRef.current.play();
+
+        gsap.to(loopVideoRef.current, { opacity: 0, duration: 1 });
+        gsap.to(transitionVideoRef.current, { opacity: 1, duration: 1 });
+      }
+
+    }, containerRef);
+  };
+
+  const onTransitionVideoEnd = () => {
+    // Fade out to black or just push
+    gsap.to(containerRef.current, {
+      opacity: 0,
+      duration: 1,
+      onComplete: () => {
+        const queryString = searchParams.toString();
+        router.push(queryString ? `/invitation?${queryString}` : "/invitation");
+      }
+    });
+  };
+
+  return (
+    <div
+      ref={containerRef}
+      className="relative w-full h-[100svh] overflow-hidden bg-black text-white flex flex-col items-center justify-center"
+    >
+      {/* 1. Loop Video (Background) */}
+      <video
+        ref={loopVideoRef}
+        className="absolute inset-0 w-full h-full object-cover z-0"
+        src="/assets/videos/opening-loop.mp4"
+        autoPlay
+        muted
+        loop
+        playsInline
+      />
+
+      {/* 2. Transition Video (Hidden initially) */}
+      <video
+        ref={transitionVideoRef}
+        className="absolute inset-0 w-full h-full object-cover z-10 hidden"
+        src="/assets/videos/opening-transition.mp4"
+        muted={false} // Transition video has audio? Usually we rely on global audio.
+        playsInline
+        onEnded={onTransitionVideoEnd}
+      />
+
+      {/* Overlay Gradient */}
+      <div className="absolute inset-0 bg-gradient-to-b from-black/60 via-transparent to-black/80 z-20 pointer-events-none" />
+
+      {/* Content */}
+      <div className="relative z-30 flex flex-col items-center justify-end h-full pb-32 space-y-8 w-full px-6">
+
+        {/* Dynamic Text */}
+        <div ref={textRef} className="text-center space-y-2 opacity-0">
+          <p className="font-serif text-lg tracking-widest text-slate-200">Dear</p>
+          <h1 className="font-serif text-4xl md:text-5xl font-medium text-white capitalize drop-shadow-lg">
+            {guestName}
+          </h1>
         </div>
-    );
+
+        {/* Action Button */}
+        <button
+          ref={buttonRef}
+          onClick={handleOpenInvitation}
+          disabled={isTransitioning}
+          className={cn(
+            "opacity-0 relative group px-8 py-3 rounded-full overflow-hidden transition-all duration-300",
+            "bg-white/10 backdrop-blur-sm border border-white/30 shadow-[0_0_20px_rgba(255,255,255,0.1)]",
+            "hover:bg-white/20 hover:border-white/50",
+            isTransitioning && "cursor-not-allowed grayscale"
+          )}
+          aria-label="Open Invitation"
+        >
+          <span className="relative z-10 font-sans text-xs uppercase tracking-[0.2em] text-white/90 group-hover:text-white transition-colors">
+            {buttonText}
+          </span>
+
+          {/* Ripple Effect Container (could be enhanced) */}
+          <div className="absolute inset-0 rounded-full bg-white/0 group-active:bg-white/10 transition-colors duration-200" />
+        </button>
+
+      </div>
+    </div>
+  );
 }
